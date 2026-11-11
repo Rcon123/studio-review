@@ -1,0 +1,563 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Studio Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: Studio home (hero + numbered row) -> one-at-a-time review -> round done -> Studio's rewrite. */
+:root {
+  --bg: #141110;
+  --surface: #1e1a18;
+  --surface-2: #2a2421;
+  --line: #3b3330;
+  --fg: #f4e8d4;
+  --muted: #a3968a;
+  --red: #e3262f;
+  --keep: #3fcf7c;
+  --kill: #ff6a5c;
+  --fix: #f5b83d;
+  --fb-bg: #ffffff;
+  --fb-fg: #1c1e21;
+  --fb-muted: #65676b;
+  --fb-line: #e4e6eb;
+  --display: "Bebas Neue", Impact, "Arial Narrow", sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body, #app { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.gutter { padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.display { font-family: var(--display); font-weight: 400; letter-spacing: .01em; line-height: .92; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+
+/* Nav */
+.nav { display: flex; align-items: center; gap: 28px; padding-block: 18px; position: relative; z-index: 2; }
+.logo { font-family: var(--display); font-size: 30px; color: var(--red); letter-spacing: .02em; line-height: 1; }
+
+/* Home */
+.home { min-height: 100%; background: radial-gradient(110% 70% at 85% 0%, rgba(227,38,47,.26), transparent 60%); }
+.hero { position: relative; overflow: hidden; padding-block: 8px 44px; }
+.ghost { position: absolute; right: -2vw; top: -3vw; font-family: var(--display); font-size: clamp(120px, 24vw, 380px); color: var(--fg); opacity: .05; pointer-events: none; line-height: .8; white-space: nowrap; }
+.hero-inner { position: relative; max-width: 760px; display: grid; gap: 18px; padding-top: 24px; }
+.badge { display: inline-flex; align-items: center; gap: 10px; }
+.badge b { background: var(--red); color: #fff; font-size: 12px; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 3px; }
+.hero h1 { font-size: clamp(60px, 11vw, 124px); margin: 0; text-wrap: balance; }
+.hero p { margin: 0; max-width: 46ch; color: #d8ccba; font-size: 18px; }
+.btn { border: 0; border-radius: 6px; padding: 13px 26px; font-weight: 700; font-size: 17px; display: inline-flex; align-items: center; gap: 10px; justify-self: start; }
+.btn.primary { background: var(--fg); color: #141110; }
+.btn.primary:hover { background: #fff; }
+.btn.red { background: var(--red); color: #fff; }
+
+.hero h1 .offer { display: block; font-size: .32em; letter-spacing: .06em; color: var(--muted); margin-bottom: .12em; }
+.rtop .where { font-size: 13px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+@media (max-width: 640px) { .rtop .where { display: none; } }
+.row { padding-block: 0 48px; }
+.row h2 { font-size: 22px; margin: 0 0 12px; font-weight: 800; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.card { position: relative; border: 0; border-radius: 6px; overflow: hidden; aspect-ratio: 16 / 9; text-align: left; padding: 0; background: var(--g); transition: transform .18s ease; max-width: 100%; }
+.card:hover { transform: scale(1.03); z-index: 1; }
+.card .num { position: absolute; left: -6px; bottom: -18px; font-family: var(--display); font-size: 150px; line-height: 1; color: transparent; -webkit-text-stroke: 2px rgba(244,232,212,.85); }
+.card .txt { position: absolute; left: 34%; right: 12px; top: 14px; display: grid; gap: 2px; }
+.card .txt small { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: rgba(244,232,212,.85); }
+.card .txt strong { font-family: var(--display); font-size: 34px; line-height: .95; color: var(--fg); font-weight: 400; }
+.card .status { position: absolute; left: 34%; bottom: 14px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; line-height: 1.2; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.is-go { background: var(--fix); } .dot.is-done { background: var(--keep); }
+.card .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,.18); }
+.card .bar i { display: block; height: 100%; background: var(--red); }
+
+/* Review */
+.review { height: 100%; display: flex; flex-direction: column; }
+.rtop { display: flex; align-items: center; gap: 14px; padding-block: 14px; flex: none; }
+.rtop .logo { font-size: 24px; }
+.rtop .spacer { flex: 1; }
+.rtop .count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rtop .x { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 5px 12px; font-weight: 600; color: var(--muted); }
+.seg { display: inline-flex; background: var(--surface); border-radius: 99px; padding: 3px; }
+.rtop .count, .seg button { white-space: nowrap; }
+@media (max-width: 480px) { .review .rtop .logo { display: none; } .rtop { gap: 10px; } }
+.seg button { border: 0; background: none; border-radius: 99px; padding: 4px 12px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--fg); color: #141110; }
+.progress { height: 3px; background: var(--surface-2); flex: none; }
+.progress i { display: block; height: 100%; background: var(--red); transition: width .25s; }
+.stage { flex: 1; min-height: 0; overflow: auto; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; gap: 16px; padding-block: 28px 130px; }
+.head { width: 100%; max-width: 560px; display: grid; gap: 4px; }
+.head h2 { margin: 0; font-size: clamp(40px, 7vw, 56px); }
+.asked { width: 100%; max-width: 560px; background: var(--surface); border-left: 3px solid var(--fix); border-radius: 6px; padding: 10px 14px; font-size: 14px; display: grid; gap: 4px; }
+.asked b { color: var(--fix); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+.deck { width: 100%; max-width: 560px; position: relative; touch-action: pan-y; }
+.deck.square { max-width: min(560px, calc(100vh - 300px)); min-width: min(320px, 100%); }
+.deck.enter { animation: enter .22s ease-out; }
+.deck.out-keep { transform: translateX(50%) rotate(5deg); opacity: 0; transition: .2s ease-in; }
+.deck.out-kill { transform: translateX(-50%) rotate(-5deg); opacity: 0; transition: .2s ease-in; }
+.deck.out-fix { transform: translateY(30%); opacity: 0; transition: .2s ease-in; }
+@keyframes enter { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.tip { color: var(--muted); font-size: 13px; text-align: center; }
+
+/* The ad as she sees it */
+.fb { background: var(--fb-bg); color: var(--fb-fg); border-radius: 10px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.5); font-family: Helvetica, Arial, sans-serif; }
+.fb-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px 8px; }
+.fb-av { width: 40px; height: 40px; border-radius: 50%; background: #d8dadf; display: grid; place-items: center; font-weight: 700; color: #4b4f56; font-size: 14px; flex: none; }
+.fb-head b { font-size: 15px; display: block; }
+.fb-head small { color: var(--fb-muted); font-size: 13px; }
+.pic { position: relative; }
+.fb img { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; background: #ddd; }
+.fb img.wide { aspect-ratio: 1.91 / 1; }
+.before { position: absolute; top: 10px; right: 10px; width: 26%; border: 2px solid #fff; border-radius: 6px; overflow: hidden; padding: 0; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+.before img { aspect-ratio: 1 / 1; }
+.before span { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.6); color: #fff; font: 700 10px/1.8 Helvetica, Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
+.fb-link { display: flex; align-items: center; gap: 12px; padding: 10px 14px 12px; background: #f0f2f5; }
+.fb-link > div { flex: 1; min-width: 0; }
+.fb-link small { color: var(--fb-muted); font-size: 12px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fb-link strong { font-size: 17px; line-height: 1.25; display: block; }
+.fb-link.big strong { font-size: 21px; }
+.fb-btn { background: #e4e6eb; border-radius: 6px; font-weight: 700; font-size: 14px; padding: 8px 12px; white-space: nowrap; }
+.fb-body { padding: 4px 0 10px; font-size: 15px; line-height: 1.4; }
+.ln { cursor: pointer; user-select: text; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 4px; width: 100%; text-align: left; background: none; border: 0; border-left: 3px solid transparent; padding: 5px 14px 5px 2px; color: var(--fb-fg); font: inherit; font-family: Helvetica, Arial, sans-serif; }
+.ln:hover { background: #f5f6f7; }
+.ln .no { color: #b0b3b8; font-size: 11px; text-align: right; padding-top: 2px; font-variant-numeric: tabular-nums; user-select: none; }
+.ln.first .tx { font-weight: 700; }
+.ln.on { background: #fff2bf; }
+.ln.noted { border-left-color: var(--fix); }
+.ln.new { border-left-color: var(--keep); background: #f0fbf4; }
+.ln.new.on { background: #fff2bf; }
+.fb .note { margin: 0 14px 6px 31px; font-size: 13px; background: #fff6dc; color: #6b4a00; border-radius: 6px; padding: 5px 9px; display: flex; gap: 8px; align-items: start; }
+.fb .note span { flex: 1; min-width: 0; }
+.fb .note i { color: #8a6a1a; }
+.fb .note button { background: none; border: 0; color: #8a6a1a; padding: 0 2px; font-size: 15px; line-height: 1; }
+.fb .ask { margin: 4px 14px 10px; display: grid; gap: 8px; }
+.fb .ask q { quotes: none; font-size: 13px; color: var(--fb-muted); border-left: 3px solid var(--fix); padding-left: 8px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags button { border: 1px solid #d0d3d8; background: #fff; border-radius: 99px; padding: 3px 10px; font: 600 12px Helvetica, Arial, sans-serif; color: var(--fb-fg); }
+.tags button[aria-pressed="true"] { background: var(--fix); border-color: var(--fix); }
+.fb .ask textarea { width: 100%; min-height: 64px; resize: vertical; border: 1px solid #d0d3d8; border-radius: 8px; padding: 9px 11px; font: 15px/1.4 Helvetica, Arial, sans-serif; color: var(--fb-fg); background: #fff; }
+.fb .ask .row2 { display: flex; justify-content: flex-end; gap: 8px; }
+.fb .ask .row2 button { border: 0; border-radius: 6px; padding: 7px 14px; font-weight: 700; font-size: 14px; }
+.fb .ask .save { background: var(--fb-fg); color: #fff; }
+.fb .ask .cancel { background: #e4e6eb; color: var(--fb-fg); }
+.fb-foot { border-top: 1px solid var(--fb-line); display: flex; justify-content: space-around; color: var(--fb-muted); font-size: 14px; font-weight: 600; padding: 8px; }
+
+/* The lander as a page */
+.page { background: #fff; color: #1d1d1f; border-radius: 10px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.5); font-family: Georgia, "Times New Roman", serif; }
+.pbar { background: #f2f2f2; color: #6e6e73; font: 12px Helvetica, Arial, sans-serif; padding: 8px 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sec { cursor: pointer; user-select: text; display: block; width: 100%; text-align: left; background: none; border: 0; border-left: 3px solid transparent; padding: 14px 18px 12px; color: inherit; font: inherit; border-bottom: 1px dashed #e6e6e6; }
+.sec:hover { background: #fafafa; }
+.sec.on { background: #fff8dc; }
+.sec.noted { border-left-color: var(--fix); }
+.sec .lab { display: block; font: 700 10px Helvetica, Arial, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #a1a1a6; margin-bottom: 6px; }
+.sec p { margin: 0 0 8px; font-size: 16px; line-height: 1.5; }
+.sec.hero p:first-of-type { font: 700 25px/1.2 Helvetica, Arial, sans-serif; }
+.sec .cta { display: inline-block; background: #1a7f37; color: #fff; font: 700 15px Helvetica, Arial, sans-serif; padding: 12px 18px; border-radius: 6px; margin: 4px 0 8px; }
+.sec.fine p { font-size: 12px; color: #6e6e73; }
+.page .note { margin: 6px 18px 10px; font: 13px Helvetica, Arial, sans-serif; background: #fff6dc; color: #6b4a00; border-radius: 6px; padding: 5px 9px; display: flex; gap: 8px; }
+.page .note span { flex: 1; min-width: 0; }
+.page .note button { background: none; border: 0; color: #8a6a1a; font-size: 15px; line-height: 1; }
+.page .ask { margin: 8px 18px 14px; display: grid; gap: 8px; font-family: Helvetica, Arial, sans-serif; }
+.page .ask q { quotes: none; font-size: 13px; color: #6e6e73; border-left: 3px solid var(--fix); padding-left: 8px; }
+.page .ask textarea { width: 100%; min-height: 64px; resize: vertical; border: 1px solid #d0d3d8; border-radius: 8px; padding: 9px 11px; font: 15px/1.4 Helvetica, Arial, sans-serif; }
+.page .ask .row2 { display: flex; justify-content: flex-end; gap: 8px; }
+.page .ask .row2 button { border: 0; border-radius: 6px; padding: 7px 14px; font-weight: 700; font-size: 14px; }
+.page .ask .save { background: #1d1d1f; color: #fff; }
+.page .ask .cancel { background: #e4e6eb; }
+
+/* Decision bar */
+.dbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: linear-gradient(180deg, transparent, var(--bg) 40%);
+  padding: 26px max(16px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  display: flex; justify-content: center; gap: 10px; }
+.dbtn { border: 0; border-radius: 99px; padding: 13px 24px; font-weight: 800; font-size: 15px; }
+.dbtn.kill { background: var(--kill); color: #2a0703; }
+.dbtn.fix { background: var(--fix); color: #2a1c00; }
+.dbtn.keep { background: var(--keep); color: #04240f; }
+.dbtn.back { background: var(--surface-2); color: var(--fg); padding-inline: 18px; }
+.dbtn.back:disabled { opacity: .35; cursor: default; }
+@media (max-width: 420px) { .dbtn { padding: 13px 16px; font-size: 14px; } }
+
+/* Step title flash */
+.flash { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(20,17,16,.9); animation: fade .9s ease forwards; pointer-events: none; }
+.flash div { text-align: center; }
+.flash .display { font-size: clamp(80px, 16vw, 180px); }
+@keyframes fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Round done */
+.wrapup { min-height: 100%; display: grid; align-content: center; justify-items: center; text-align: center; gap: 28px; padding-block: 48px;
+  background: radial-gradient(90% 60% at 50% 0%, rgba(227,38,47,.22), transparent 65%); }
+.wrapup h1 { font-size: clamp(64px, 13vw, 140px); margin: 0; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 150px)); gap: 10px; }
+.tile { background: var(--surface); border-radius: 8px; padding: 16px 10px; display: grid; gap: 4px; }
+.tile .display { font-size: 60px; }
+.tile.keep .display { color: var(--keep); } .tile.fix .display { color: var(--fix); } .tile.kill .display { color: var(--kill); }
+.tile small { color: var(--muted); font-size: 13px; }
+.skills { width: 100%; max-width: 560px; display: grid; gap: 8px; text-align: left; }
+.skills h3 { margin: 0 0 2px; font-family: var(--display); font-weight: 400; font-size: 30px; text-align: center; }
+.skills > p { margin: 0 0 6px; color: var(--muted); font-size: 14px; text-align: center; }
+.skill { background: var(--surface); border-radius: 8px; padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.skill small { color: var(--fix); font-size: 12px; font-weight: 700; }
+.skill b { display: block; font-weight: 600; font-size: 15px; }
+.skill .yn { display: flex; gap: 6px; }
+.skill .yn button { border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 5px 11px; font-weight: 700; font-size: 13px; color: var(--muted); }
+.skill .yn button[aria-pressed="true"].y { background: var(--keep); border-color: var(--keep); color: #04240f; }
+.skill .yn button[aria-pressed="true"].n { background: var(--surface-2); color: var(--fg); }
+.wrapup .btn { justify-self: center; }
+.sent { color: var(--keep); font-weight: 700; font-size: 16px; }
+.waiting { color: var(--muted); font-size: 13px; max-width: 46ch; margin: 0; }
+.links { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; }
+.links button { background: none; border: 0; color: var(--muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div id="app"></div>
+
+<script id="campaign" type="application/json">[{"id": "db7abafd", "offer": "OsteoShield", "name": "Statics", "date": "11.02.26", "domain": "OSTEOSHIELD-NEWS.GOLDENYEARSJOURNAL.ORG", "steps": [{"key": "headlines", "label": "Headlines", "items": [{"id": "h1", "text": "My Endocrinologist Asked, 'What Are You Doing for Your Bones?'"}, {"id": "h2", "text": "The Bone Support Question to Ask Your Endocrinologist (Next Visit)"}]}, {"key": "images", "label": "Images", "items": [{"id": "i1", "src": "img/1.jpg", "label": "Proven Patterns"}, {"id": "i2", "src": "img/2.jpg", "label": "Proven Patterns"}, {"id": "i3", "src": "img/3.jpg", "label": "Before/After"}, {"id": "i4", "src": "img/4.jpg", "label": "Copy Scenes"}, {"id": "i5", "src": "img/5.jpg", "label": "Copy Scenes"}, {"id": "i6", "src": "img/6.jpg", "label": "Copy Scenes"}, {"id": "i7", "src": "img/7.jpg", "label": "Before/After"}, {"id": "i8", "src": "img/8.jpg", "label": "Proven Patterns"}, {"id": "i9", "src": "img/9.jpg", "label": "Copy Scenes"}]}, {"key": "adtext", "label": "Ad text", "items": [{"id": "a1", "title": "Long story 1", "lines": ["How I got my Bone-Density up without “Prolia” stunned my Endocrinologist.", "If you're over 65 and every checkup makes your stomach drop a little... this one's for you.", "I'm 72, and I've seen the same endocrinologist for 6 years now.", "Last spring she sat across from me with my results and said she wanted to start me on \"Prolia,\" a shot, twice a year.", "I told her I'd think about it.", "But what I didn't say was that my hands were shaking in my lap.", "Then I made the mistake of telling my daughter Karen, right there in the car.", "She called that night, and again the next morning, and by Sunday she was emailing me listings for \"condos with no stairs.\"", "My stairs, honey. The ones I've carried laundry down for 30 years.", "And the awful part is, I'd already started noticing things myself...", "Gripping the railing sideways on the way to the basement.", "One hand on the doorframe getting out of the car.", "Walking behind the cart at Trader Joe's like it was a walker (and I'd have laughed if it were anyone else).", "I hated that Karen might be right.", "Then my friend Carol (she worked at a pharmacy for years, and she still plants a whole vegetable garden at 74) sent me an article.", "It was about everyday things that support bones and stiff joints, and what most of us were never told.", "I almost deleted it.", "Something from a text message was going to help when my own specialist's plan was a shot? Come on.", "And if it were that simple, wouldn't my doctor have said so?", "But Carol has never steered me wrong, and I figured reading it cost me nothing.", "So I read it twice.", "Then I started doing what the article laid out, every morning with my coffee.", "Nothing dramatic, nothing I could feel right away, but I kept it up anyway...", "And somewhere along the way I realized I wasn't reaching for the doorframe anymore.", "I couldn't even tell you the day it stopped, which still gets me.", "When I went back for my follow up, the endocrinologist read my results, then read them again.", "She took her glasses off.", "\"What have you been doing?\"", "So I told her everything, the article, the mornings, all of it.", "She didn't say much... she just kept looking from the paper to me and shaking her head.", "I walked out to the parking lot and sat there with my purse in my lap, grinning like a fool.", "Then came Karen.", "The next weekend I carried a full basket of towels up from the basement while she watched from the kitchen.", "She said NOTHING.", "But the condo listings stopped, and last Saturday she brought her 2 boys over to help me plant tomatoes.", "I was down on my knees in the dirt next to them. 🌱", "Now I keep going back and forth...", "Some ladies at church are on \"Prolia,\" and I'd never want anyone to think I'm telling them to drop what their doctor prescribed.", "I'm NOT.", "Please talk to your own doctor about everything you do, the way I did.", "But how do you share something like this without sounding like you're telling people to ignore their doctor?", "Would you tell them, or keep it to yourself?", "I decided I'd rather share it.", "P.S. I'll link the article Carol sent me below.", "It's about what supports your bones and your joints day to day, the part nobody ever explained to me.", "I'm glad I read it before I said yes to those condo listings. 💛"]}, {"id": "a2", "title": "Long story 2", "lines": ["My endocrinologist set down her pen and asked how I got my Bone-Density up without “Prolia”.", "If you're over 65 and you've started gripping the railing a little harder than you used to... stay with me.", "I'm 71, and I'm still a little shaky telling this, honestly.", "Two appointments ago, my endocrinologist mentioned “Prolia” as something we might talk about down the road.", "She was lovely about it, not pushy at all, but I drove home with both hands tight on the steering wheel.", "Because I'd already been quietly scared for a while.", "The stairs at my son's house... the church steps with no rail on the left side... kneeling in my tomato bed and needing the fence to pull myself back up.", "I'd even stopped carrying my grandson Theo's overnight bag up to his room.", "My daughter Karen noticed, and she started saying things like \"Mom, maybe a condo with no stairs?\" I smiled and said I'd think about it.", "Then I sat in the driveway for 10 minutes after she left, because I was not ready for a condo, not one bit.", "So I tried what I could think of. Stretches off YouTube on the living room rug, a heating pad every night, a knee brace from the pharmacy, 2 walks around the block a day.", "It helped my knees a little. My bones? I had no idea, I just worried.", "Then my friend Diane texted me an article.", "She's a retired physical therapist, and we sit together at church. It was about the everyday support bones and joints need after 60.", "I almost didn't open it. Another thing for my bones? I'd given the pharmacy shelf enough of my money already.", "But Diane is 74 and walks the whole mall without slowing down, and she's never once steered me wrong, so I figured I had nothing to lose.", "I kept every appointment, and I told my doctor what I was trying.", "Nothing dramatic at first. I just noticed one day that I'd stopped doing that little pause at the top of the stairs...", "Then one Saturday I knelt to pull weeds, and I got back up without touching the fence.", "I stood there like a fool holding a fistful of dandelions. 😅", "A few weeks after that, Karen said, \"Mom, you carried Theo's bag up and didn't even mention it.\"", "She hasn't brought up the condo since.", "Then I went back to see my endocrinologist. She looked over my results for a long moment, set down her pen, and asked what I'd been doing differently.", "I told her about the walks, and the daily routine Diane told me about. She asked me to bring in everything I take so she can see it, which I thought was fair.", "And honestly, I can't tell you which part did what. I just know how my days feel now.", "Then it got awkward...", "At Sunday dinner at Karen's, I mentioned it to my sister Pat. Pat is 74 and has been on “Prolia” for years.", "She set her fork down and said, \"So a routine you read about is better than my shots?\"", "I said no, honey, that's not what I meant at all.", "But she picked up her purse early, and I haven't heard from her in 9 days.", "I haven't felt right since. She takes hers because her doctor told her to, and I'd never tell her to change a thing.", "I just can't stop thinking about how she looked at that railing at church last month.", "So what would you do? Do I send her Diane's article and risk hurting her more, or let it go and hope she asks me herself?", "Either way, I'm putting the article below for anyone who's been eyeing the stairs twice like I was.", "It's about what bones and joints want from us every day after 60, and the simple routine behind it. ❤️"]}]}], "redo": {"a1": ["My bone density shot up without “Prolia,” and my endocrinologist was stunned.", "If you're over 65 and every checkup makes your stomach drop a little... this one's for you.", "I'm 72, and I've seen the same endocrinologist for 6 years now.", "Last spring he sat across from me with my results and told me he wanted to start me on \"Prolia.\"", "He wasn't asking, and he said he didn't want me putting it off.", "I told him I'd think about it while my hands shook in my lap where he couldn't see them.", "What I was really thinking was that this is how it starts.", "One shot and then another appointment and then somebody decides you're too fragile to keep living in your own house.", "Then I made the mistake of telling my daughter Karen, right there in the car.", "She called that night and again the next morning, and the second time she said, \"Mom, you're not safe in that house anymore, and I'm done pretending you are.\"", "By Sunday she was emailing me listings for \"condos with no stairs,\" as if I were a problem she had to solve.", "Those are my stairs, the ones I've carried laundry down for 30 years.", "I couldn't stand the thought of my own daughter deciding when I was finished with them.", "The awful part is that I'd already started noticing things myself.", "I was gripping the railing sideways on the way to the basement, and keeping one hand on the doorframe getting out of the car.", "I was even walking behind the cart at Trader Joe's like it was a walker, which I'd have laughed at if it were anyone else.", "I hated that Karen might be right.", "I hated even more feeling old in front of her, like she was watching me turn into someone she'd have to take care of.", "Then my friend Carol sent me an article about the 5 bone-destroying toxins, and the #1 toxin most of us had every single morning.", "Carol worked at a pharmacy for years, and at 74 she still plants a whole vegetable garden.", "I almost deleted it.", "And if it were that simple, wouldn't my doctor have said so?", "But Carol has never steered me wrong.", "I figured reading it cost me nothing, so I read it twice, and my stomach dropped when I got to the #1 toxin, because I'd had it that very morning.", "So I started doing what the doctor said, beginning the next day.", "It was nothing dramatic and nothing I could feel right away, but I kept it up anyway.", "Somewhere along the way I realized I was going down to the basement without gripping the railing sideways, and getting out of the car without reaching for the doorframe.", "I couldn't even tell you the day it stopped, which still gets me.", "When I went back for my follow up, the endocrinologist read my results, then read them again.", "Then he took his glasses off and said, \"What have you been doing?\"", "So I told him everything, the article, my kitchen, all of it.", "He didn't say much, he just kept looking from the paper to me and shaking his head.", "I walked out to the parking lot and sat there with my purse in my lap, grinning like a fool.", "For the first time in a long while I didn't feel like a woman who was being managed.", "The next weekend I carried a full basket of towels up from the basement while Karen watched from the kitchen.", "She set her coffee down and said, \"Mom, I was so scared for you that I stopped listening to you. I'm sorry.\"", "Last Saturday she brought her 2 boys over to help me plant tomatoes.", "There I was down on my knees in the dirt next to them, and I got back up on my own, still in my own house with my own stairs waiting behind me. 🌱", "Now I keep going back and forth, because some ladies at church are on \"Prolia.\"", "I'd never want anyone to think I'm telling them to drop what their doctor prescribed.", "I'm NOT.", "Please talk to your own doctor about everything you do, the way I did.", "But how do you share something like this without sounding like you're telling people to ignore their doctor?", "Would you tell them, or keep it to yourself?", "I decided I'd rather share it.", "P.S. The #1 of the 5 bone-destroying toxins is probably in your kitchen right now, and you likely had it this morning.", "Every day it stays there, it keeps eating at your bones.", "Please read the article I linked below today, before your next checkup or before you decide anything about the shot."], "a2": ["My endocrinologist demanded to know how I got my bone density up without “Prolia.”", "If you're over 65 and you've started gripping the railing a little harder than you used to... stay with me.", "I'm 71, and I'm still a little shaky telling this, honestly.", "Two appointments ago, my endocrinologist told me flat out that he wanted to start me on “Prolia.”", "He said every visit I put it off was a risk I didn't need to take, and he wanted an answer from me by the next appointment.", "I drove home with both hands tight on the steering wheel, because all I could think was that this was the beginning of the end of doing things my own way.", "I'd already been quietly scared for a while.", "I hadn't told anyone how much.", "I was scared of losing my house, and of the stairs at my son's house, and the church steps with no rail on the left side.", "I was scared of kneeling in my garden and needing the fence to pull myself back up.", "I couldn't pick up my grandkids anymore, and I hadn't told a soul how much that frightened me.", "My daughter Karen noticed, and one night she said, \"Mom, you can't even get up your own stairs without hanging on. Pick a condo, or I'll pick one for you.\"", "I smiled and said I'd think about it, when what I wanted to say was that I'm not ready to be handed a smaller life.", "I sat in the driveway for 10 minutes after she left, because I wasn't ready to give up my house, not one bit.", "It scared me that my own daughter had started to look at me like someone she was ready to take over for.", "So I tried everything I could think of, stretches off YouTube on the living room rug, a heating pad every night, a knee brace from the pharmacy, and 2 walks around the block a day.", "It helped my knees a little, but my bones were a mystery to me, and I just worried.", "I felt old in front of my family in a way I never had before.", "Then my friend Diane texted me an article.", "She's a retired physical therapist who sits with me at church, and it was about the 5 bone-destroying toxins, and the #1 toxin most of us had every single morning.", "I almost didn't open it.", "Something in my own kitchen was eating my bones, and nobody had ever mentioned it?", "I'd given the pharmacy shelf enough of my money already.", "But Diane is 74 and walks the whole mall without slowing down, and she's never once steered me wrong.", "So I figured I had nothing to lose, and I read it standing at my counter, where I'd had the #1 toxin that very morning.", "I kept every appointment and told my doctor what I was trying.", "At first there was nothing dramatic, I just noticed one day that I'd stopped doing that little pause at the top of the stairs.", "Then one Sunday I went up the church steps with no rail on the left side and never even looked for something to hold.", "Then one Saturday I knelt to pull weeds in my garden and got back up without touching the fence.", "I stood there like a fool holding a fistful of dandelions, thinking I might get to keep my life the way it is. 😅", "A few weeks after that, I scooped my grandson Theo up at the front door without even thinking about it.", "Karen stood there with her hand over her mouth, and then she said, \"Mom, I had already decided you were done. I'm so sorry.\"", "Then I went back to see my endocrinologist, and he looked over my results for a long moment and asked what I'd been doing differently.", "I told him about the walks and the article Diane sent me, and what I'd changed in my kitchen.", "He asked me to bring in everything I take so he can see it, which I thought was fair.", "I honestly can't tell you which part did what.", "I only know how my days feel now, and how good it is to go up my own stairs without bracing for them.", "Then it got awkward, because at Sunday dinner at Karen's I mentioned it to my sister Pat, who is 74 and has been on “Prolia” for years.", "She set her fork down and said, \"All these years I've done exactly what my doctor told me, and now you're sitting here telling me I've been a fool?\"", "I told her no, Pat, that's not what I meant at all.", "But she picked up her purse early, and I haven't heard from her in 9 days.", "I haven't felt right since.", "She takes hers because her doctor told her to, and I'd never tell her to change a thing.", "But I can't stop thinking about how she looked at that railing at church last month.", "So what would you do?", "Do I send her Diane's article and risk hurting her more, or let it go and hope she asks me herself?", "P.S. The #1 of the 5 bone-destroying toxins is probably in your kitchen right now, and you likely had it this morning.", "Every day it stays there, it keeps eating at your bones.", "Please read the article I put below today, before your next checkup or before you decide anything about the shot."]}, "redoImages": ["img/r2-1.jpg", "img/r2-2.jpg", "img/r2-3.jpg", "img/r2-4.jpg", "img/r2-5.jpg", "img/r2-6.jpg", "img/r2-7.jpg", "img/r2-8.jpg"]}, {"id": "onething1021", "offer": "OsteoShield", "name": "One Thing", "date": "10.21.26", "domain": "OSTEOSHIELD-NEWS.GOLDENYEARSJOURNAL.ORG", "steps": [{"key": "headlines", "label": "Headlines", "items": [{"id": "h1", "text": "The 1 Thing Seniors Take With Breakfast for Bone Density (Not at the Pharmacy)"}, {"id": "h2", "text": "Seniors Over 60 Are Adding \"1 Thing\" to Breakfast for Bone Density (Not at the Pharmacy)"}]}, {"key": "images", "label": "Images", "items": [{"id": "i1", "src": "img/b-1.jpg", "label": "X-ray"}, {"id": "i2", "src": "img/b-2.jpg", "label": "Proven Patterns"}, {"id": "i3", "src": "img/b-3.jpg", "label": "Trash Reveal"}, {"id": "i4", "src": "img/b-4.jpg", "label": "Proven Patterns"}, {"id": "i5", "src": "img/b-5.jpg", "label": "Fridge Door"}, {"id": "i6", "src": "img/b-6.jpg", "label": "Before/After"}]}, {"key": "adtext", "label": "Ad text", "items": [{"id": "a1", "title": "Long story 1", "lines": ["I told my doctor no to the Prolia shot, and six months later my scan went up.", "I'm 69, and it was the first time in 16 years it went anywhere but down.", "If you've watched your numbers slide while doing everything right, stay with me a minute.", "I worked at a bank most of my life, so numbers I understand.", "I knew exactly what I was looking at every year.", "Calcium every single morning since 2009, and every scan after came back worse than the last.", "Last spring my doctor slid the Prolia paperwork across the desk and said most women my age say yes.", "I took it home and sat with it at the kitchen table.", "By then I was holding the rail with both hands.", "I was making 2 trips from the car with the groceries because I didn't trust myself with the bags and the steps.", "And when my grandkids were down on the floor playing, I'd stand there thinking about how I'd get back up.", "I couldn't say yes.", "Sixteen years of fixes, and not one had turned that number around.", "I just couldn't sign for one more thing that might only slow it down.", "So I said no, and I drove home feeling like a fool.", "A few weeks later I came across a man explaining something in a video.", "He said after 60 there are tiny cells inside the bone that act like termites.", "They chew the bone from the inside, and they block the body from patching it.", "So the calcium I'd swallowed every morning for years had nowhere to go.", "I actually laughed out loud.", "Termites in my bone? After 16 years of doing everything right, I figured it was one more thing to waste money on.", "But it explained why my scans kept getting worse no matter what I did.", "He said calcium and the drugs can slow those cells down for a while, but they don't get them out.", "And he said there's one thing, taken with breakfast, that does.", "You won't find it at the pharmacy.", "My doctor had never heard of it.", "I'm not telling you what it is.", "He explains it in the video, so skip to it if you want.", "I added it to my breakfast, the only thing I changed.", "Six months later I was back in that same chair.", "My doctor looked at the screen. Then at me. Then at the screen again.", "\"What changed?\"", "I told her. She had no idea what I was talking about.", "Last month I carried all the groceries in 1 trip, and I didn't even think about it until I was putting them away.", "I'm not telling anyone to stop anything their doctor prescribed.", "Talk to yours.", "And I'm just one woman, so I can't promise your scan will do what mine did.", "But have you ever sat in that chair, watched the number go the wrong way, and wondered what you were missing?", "I'd want to know.", "The link is below. It takes you to a short page first, and then the video.", "Skip to the part where he names it."]}, {"id": "a2", "title": "Long story 2", "lines": ["My doctor looked at my new scan twice and asked me, \"What changed?\"", "If you've taken your calcium every morning for years and your numbers keep slipping anyway, this one's for you.", "I'm 69, and I'll tell you the whole thing because I know how it sounds.", "Since 2009 I've taken my calcium every single morning. With my coffee, with my toast, never missed a day.", "And every scan came back lower than the one before.", "Sixteen years of that.", "I used to work at a bank, so numbers are what I look at.", "I'd sit in the car after the appointment and stare at the paper, at my bone density number, hoping I'd read it wrong.", "Then came the Fosamax, and I did what I was told.", "The next scan still went the wrong way.", "By then I was holding the rail with both hands going down the basement stairs, thinking about my hip every time my foot left a step.", "I'd started carrying the groceries in 3 trips, small bags, like a woman twice my age.", "And when my grandkids got down on the floor to play, I stayed in my chair. Getting back up was something I had to plan.", "Then a friend from my old bank sent me a video.", "I almost didn't press play. 16 years of doing everything right, and a video was going to tell me something I didn't know?", "I said that out loud to my kitchen.", "But he said something that stuck with me.", "He said that after 60, tiny cells inside the bone act like termites.", "They chew the bone from the inside, and they block the body's signal to patch it back up.", "So the calcium I swallowed every morning had nowhere to go.", "He said the pills and the shot can slow those cells down for a while, but they never get them out. And nothing at the pharmacy does.", "You never see termites, only what they leave behind. That, I understood.", "Then he got to one thing you take with breakfast.", "I'm not telling you what it is. He explains it in the video, skip to it if you want.", "I started it the next morning, right next to my coffee.", "Six months later I sat in my doctor's office for my scan.", "He looked at the screen. Then at me. Then at the screen again.", "The number had gone up.", "First time in 16 years.", "\"What changed?\" he said.", "I just smiled and told him I'd been looking after myself.", "I let go of the rail with 1 hand without even thinking about it.", "I carried the groceries in 1 trip last week.", "And I got down on the floor with my grandkids and got back up on my own.", "I'm not saying it's right for everybody, and I'm not telling you to change anything your doctor gave you. Ask yours.", "But if you've done everything right for years and the scans still keep sliding, hear me out.", "Would you rather wait for next year's scan and hope, or spend a few minutes finding out what I found?", "Tap below. It goes to a short page first, then the video.", "Skip ahead to where he gets to it."]}]}, {"key": "lander", "label": "Lander", "items": [{"id": "l1", "title": "Squeeze page", "sections": [{"name": "Top of page", "lines": ["The One Thing Seniors Are Taking With Breakfast for Bone Density After 60", "Not calcium. Not a drug. Not at the pharmacy.", "\"My scan went up for the first time in 16 years, and my doctor looked at the screen twice.\""]}, {"name": "Her story", "lines": ["My doctor slid the Prolia paperwork across the desk and I slid it right back.", "I'm 69, and I spent my working years at a bank, so I read the fine print on everything.", "I had taken my calcium every morning since 2009, 16 years of scans, and every single one came back a little worse than the last.", "Nobody could tell me where all that calcium was going.", "Six months after I said no to the shot, I went back for my scan.", "My doctor looked at the screen, looked away, and looked at it again.", "\"What changed?\" he asked.", "The number had gone up, first time in 16 years."]}, {"name": "Why it happens", "lines": ["Here's what finally made sense to me.", "After 60, there are tiny cells inside the bone that act like termites.", "They chew at it from the inside and block the body from patching it, so the calcium you swallow has nowhere to go.", "The way it was explained to me, the pills and the shot can slow those cells down for a while, but they never get them out, and nothing at the pharmacy does."]}, {"name": "The one thing", "lines": ["Then I found one thing you take with breakfast.", "Most doctors have never heard of it, and you won't find it on a pharmacy shelf."]}, {"name": "Her life now", "lines": ["These days I carry the groceries in one trip.", "I go down the steps without gripping the rail with both hands, and I sit on the floor with my grandkids without working out how I'll get back up."]}, {"name": "Call to action", "lines": ["I'm not telling you what it is on this page.", "He explains it in the video, so skip to it if you want.", "WATCH THE VIDEO TO SEE WHAT IT IS"]}, {"name": "Fine print", "lines": ["This is one woman's story, and individual results vary. This page is for general education and is not medical advice. Talk with your doctor before making any change to your own treatment. Statements have not been evaluated by the Food and Drug Administration."]}]}]}], "redo": {}, "redoImages": []}]</script>
+<script>
+(function () {
+  const ALL = JSON.parse(document.getElementById('campaign').textContent);
+  const app = document.getElementById('app');
+  const KEY = 'studio-review-v5';
+  const STEP_GRAD = {
+    headlines: 'linear-gradient(120deg,#3a0b0d 0%,#a3161c 70%,#e3262f 100%)',
+    images: 'linear-gradient(120deg,#0e2a1d 0%,#2f7a52 70%,#7fc49b 100%)',
+    adtext: 'linear-gradient(120deg,#161a3a 0%,#33408a 70%,#7b86c9 100%)',
+    lander: 'linear-gradient(120deg,#33210b 0%,#9a5f1c 70%,#e0a04c 100%)'
+  };
+  const CARD_GRAD = [STEP_GRAD.headlines, STEP_GRAD.adtext, STEP_GRAD.images, STEP_GRAD.lander];
+  const TAGS = {
+    headlines: ['Too soft', 'Keyword not first', 'Confusing', 'Gives away the reveal'],
+    images: ['Looks AI', 'Nothing to stop on', 'Doesn\'t match the ad', 'Fingers in frame'],
+    adtext: ['Choppy', 'Flat, no drama', 'Not how she talks', 'Confusing', 'Wall of text'],
+    lander: ['Confusing', 'Flat, no drama', 'Doesn\'t match the ad', 'Wall of text']
+  };
+  const RULES = {
+    'Too soft': 'Lead hard. The first words carry the keyword and the hit.',
+    'Keyword not first': 'Put the keyword in the first 3 words.',
+    'Confusing': 'If a stranger would read it twice, rewrite it in plain words.',
+    'Gives away the reveal': 'Hold the reveal. Tease it, never tell it.',
+    'Looks AI': 'iPhone-real. No glossy stock light.',
+    'Nothing to stop on': 'One wrong or impossible thing she gets in one second.',
+    'Doesn\'t match the ad': 'Pull from this ad and this page, never a generic scene.',
+    'Fingers in frame': 'No fingers in frame unless the idea needs them.',
+    'Choppy': 'Write flowing sentences the way she\'d say them. No fragments for punch.',
+    'Flat, no drama': 'Every quote needs drama. Say the fear out loud.',
+    'Not how she talks': 'Use her words from the research, the way she\'d say it out loud.',
+    'Wall of text': 'Keep the line breaks. No paragraph over about 25 words on a phone.'
+  };
+  const KIND_WORD = { headlines: ['headline', 'headlines'], images: ['image', 'images'], adtext: ['ad text', 'ad texts'], lander: ['lander', 'landers'] };
+
+  // ---- state: one record per campaign ----
+  const freshC = () => ({ round: 1, i: 0, d1: {}, d2: {}, sent1: false, sent2: false, everything: false, skip: {} });
+  let G = { view: 'home', cur: null, by: {} };
+  try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.by) G = s; } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(G)); } catch (e) {} };
+  const stOf = c => (G.by[c.id] = G.by[c.id] || freshC());
+  const flat = c => c.steps.flatMap(s => s.items.map(it => Object.assign({ step: s.key }, it)));
+
+  let C = null, S = null, R1 = [];
+  function use(id) { C = ALL.find(c => c.id === id) || ALL[0]; S = stOf(C); R1 = flat(C); G.cur = C.id; }
+  if (G.cur) use(G.cur); else if (G.view !== 'home') G.view = 'home';
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const stepOf = k => C.steps.find(s => s.key === k);
+  const D = () => (S.round === 1 ? S.d1 : S.d2);
+  const rec = id => (D()[id] = D()[id] || { v: null, notes: [] });
+  let asking = null, busy = false, justSelected = 0, showBefore = false;
+
+  // ---------- Studio's rewrite (round 2) ----------
+  function rewritesFor(c, st) {
+    const out = []; let k = 0;
+    flat(c).forEach(it => {
+      const r = st.d1[it.id]; if (!r || r.v !== 'fix') return;
+      if (it.step === 'images' && c.redoImages.length) out.push(Object.assign({}, it, { id: it.id + 'r', base: it.id, src: c.redoImages[k++ % c.redoImages.length], beforeSrc: it.src, rewrite: true }));
+      if (it.step === 'adtext' && c.redo[it.id]) out.push(Object.assign({}, it, { id: it.id + 'r', base: it.id, lines: c.redo[it.id], rewrite: true }));
+    });
+    return out;
+  }
+  const rewrites = () => rewritesFor(C, S);
+  function queue() {
+    if (S.round === 1) return R1;
+    const rw = rewrites();
+    if (!S.everything) return rw;
+    return R1.flatMap(it => {
+      const r = S.d1[it.id]; if (!r || r.v === 'kill') return [];
+      const x = rw.find(w => w.base === it.id);
+      if (x) return [x];
+      return r.v === 'keep' ? [Object.assign({}, it, { id: it.id + 'k', kept: true })] : [];
+    });
+  }
+
+  // Where each campaign stands, most urgent first.
+  function status(c) {
+    const st = stOf(c); const items = flat(c);
+    const done1 = items.filter(it => st.d1[it.id] && st.d1[it.id].v).length;
+    const rw = rewritesFor(c, st);
+    const done2 = rw.filter(it => st.d2[it.id] && st.d2[it.id].v).length;
+    if (st.sent1 && rw.length && !st.sent2) return { rank: 0, dot: 'is-go', label: done2 ? `Rewrite · ${done2} of ${rw.length}` : 'Studio\'s rewrite is ready', button: 'Review Studio\'s rewrite', frac: done2 / rw.length };
+    if (done1 && done1 < items.length) return { rank: 1, dot: 'is-go', label: `${done1} of ${items.length} reviewed`, button: 'Keep going', frac: done1 / items.length };
+    if (done1 === items.length && !st.sent1) return { rank: 1, dot: 'is-go', label: 'Ready to send', button: 'Send to Studio', frac: 1 };
+    if (!done1) return { rank: 2, dot: '', label: 'Waiting on you', button: 'Start review', frac: 0 };
+    return { rank: 3, dot: 'is-done', label: 'Done', button: 'See results', frac: 1 };
+  }
+  const ordered = () => ALL.slice().sort((a, b) => status(a).rank - status(b).rank || a.date.localeCompare(b.date));
+  function summary(c) {
+    return c.steps.map(s => s.items.length + ' ' + KIND_WORD[s.key][s.items.length === 1 ? 0 : 1]).join(' · ');
+  }
+
+  // ---------- Home: the campaigns waiting on you ----------
+  function renderHome() {
+    const list = ordered(); const top = list[0]; const ts = status(top);
+    const allDone = list.every(c => status(c).rank === 3);
+    const cards = list.map((c, n) => {
+      const s = status(c);
+      return `<button class="card" data-open="${c.id}" style="--g:${CARD_GRAD[ALL.indexOf(c) % CARD_GRAD.length]}">
+        <span class="num" aria-hidden="true">${n + 1}</span>
+        <span class="txt"><small>${esc(c.date)} · ${flat(c).length} pieces</small><strong>${esc(c.name.toUpperCase())}</strong></span>
+        <span class="status"><i class="dot ${s.dot}"></i>${esc(s.label)}</span>
+        <span class="bar"><i style="width:${s.frac * 100}%"></i></span></button>`;
+    }).join('');
+    app.innerHTML = `<div class="home">
+      <section class="hero gutter">
+        <div class="ghost" aria-hidden="true">REVIEW</div>
+        <nav class="nav"><span class="logo">STUDIO</span></nav>
+        <div class="hero-inner">
+          <div class="badge eyebrow"><b>S</b> ${allDone ? 'All caught up' : esc(ts.label)} · ${esc(top.date)}</div>
+          <h1 class="display"><span class="offer">${esc(top.offer.toUpperCase())}</span>${esc(top.name.toUpperCase())}</h1>
+          <p>${esc(summary(top))}</p>
+          <button class="btn primary" data-open="${top.id}">▶ ${esc(ts.button)}</button>
+        </div>
+      </section>
+      <section class="row gutter"><h2>${allDone ? 'Reviewed' : 'Waiting on you'}</h2><div class="cards">${cards}</div></section>
+    </div>`;
+  }
+  function open(id) {
+    use(id); const s = status(C);
+    if (s.rank === 0) return startRound(2);
+    if (s.rank === 3 || s.button === 'Send to Studio') { S.round = 1; return go('done'); }
+    return startRound(1);
+  }
+
+  // ---------- Review ----------
+  function renderReview(anim) {
+    const q = queue(); const it = q[S.i];
+    if (!it) return finishRound();
+    const r = rec(it.id);
+    const s = stepOf(it.step);
+    const num = s.items.findIndex(x => x.id === (it.base || it.id.replace(/k$/, ''))) + 1;
+    const title = it.step === 'adtext' || it.step === 'lander' ? it.title : (it.step === 'images' ? 'Image ' : 'Headline ') + num;
+    const eyebrow = it.rewrite ? 'Studio\'s rewrite · ' + s.label : it.kept ? 'You kept this · ' + s.label : s.label;
+    const tip = it.step === 'adtext' ? 'Tap a line, or highlight words, to leave a note.' : it.step === 'lander' ? 'Tap a section, or highlight words, to leave a note.' : '';
+    app.innerHTML = `<div class="review">
+      <div class="rtop gutter"><span class="logo">STUDIO</span><span class="where">${esc(C.offer)} · ${esc(C.name)}</span><span class="spacer"></span>
+        ${S.round === 2 ? `<span class="seg"><button data-act="only-new" aria-pressed="${!S.everything}">Only new</button><button data-act="everything" aria-pressed="${S.everything}">Everything</button></span>` : ''}
+        <span class="count">${S.i + 1} of ${q.length}</span><button class="x" data-act="home">Close</button></div>
+      <div class="progress"><i style="width:${(S.i / q.length) * 100}%"></i></div>
+      <div class="stage gutter" id="stage">
+        <div class="head"><span class="eyebrow">${esc(eyebrow)}</span><h2 class="display">${esc(title.toUpperCase())}</h2></div>
+        ${it.rewrite ? askedBox(it.base) : ''}
+        <div class="deck ${anim ? 'enter' : ''} ${it.step === 'images' ? 'square' : ''}" id="deck">${it.step === 'lander' ? pageCard(it, r) : card(it, r)}</div>
+        ${tip ? `<span class="tip">${tip}</span>` : ''}
+      </div>
+      <div class="dbar">
+        <button class="dbtn back" data-act="back" ${S.i === 0 ? 'disabled' : ''} aria-label="Go back">↑</button>
+        <button class="dbtn kill" data-act="kill">Kill</button>
+        <button class="dbtn fix" data-act="fix">Fix</button>
+        <button class="dbtn keep" data-act="keep">Keep</button>
+      </div></div>`;
+    const ta = document.getElementById('ask'); if (ta) ta.focus();
+    bindSwipe();
+  }
+  function askedBox(baseId) {
+    const notes = (S.d1[baseId] || { notes: [] }).notes;
+    if (!notes.length) return '';
+    return `<div class="asked"><b>You asked for</b>${notes.slice(0, 3).map(n => `<span>${n.line != null ? 'Line ' + (n.line + 1) + ': ' : ''}${esc(n.tags.concat(n.text ? [n.text] : []).join('. '))}</span>`).join('')}${notes.length > 3 ? `<span style="color:var(--muted)">+${notes.length - 3} more</span>` : ''}</div>`;
+  }
+  const fbHead = () => `<div class="fb-head"><span class="fb-av">${esc(C.offer.slice(0, 2).toUpperCase())}</span><div><b>${esc(C.offer)} News</b><small>Sponsored · 🌎</small></div></div>`;
+  const fbLink = (t, big) => `<div class="fb-link ${big ? 'big' : ''}"><div><small>${esc(C.domain)}</small><strong>${esc(t)}</strong></div><span class="fb-btn">Learn more</span></div>`;
+  function askBox(step, ph) {
+    return `<div class="ask">${asking.quote ? `<q>"${esc(asking.quote)}"</q>` : ''}
+      <div class="tags">${TAGS[step].map(t => `<button data-tag="${esc(t)}" aria-pressed="${asking.tags.has(t)}">${esc(t)}</button>`).join('')}</div>
+      <textarea id="ask" placeholder="${ph}"></textarea>
+      <div class="row2"><button class="cancel" data-act="cancel">Cancel</button><button class="save" data-act="save">${asking.thenFix ? 'Send back' : 'Save'}</button></div></div>`;
+  }
+  const noteRow = (x, k) => `<div class="note"><span>${x.quote ? '<i>"' + esc(x.quote) + '"</i> ' : ''}${x.tags.length ? '<b>' + esc(x.tags.join(', ')) + '</b>' + (x.text ? ': ' : '') : ''}${esc(x.text)}</span><button data-del="${k}" aria-label="Remove note">×</button></div>`;
+  const notesAt = (r, line) => r.notes.map((x, k) => [x, k]).filter(([x]) => x.line === line).map(([x, k]) => noteRow(x, k)).join('');
+
+  function card(it, r) {
+    const firstImg = stepOf('images').items[0].src;
+    const firstHl = stepOf('headlines').items[0].text;
+    const whole = notesAt(r, null);
+    const ask = asking && asking.line == null ? askBox(it.step, 'What should Studio change?') : '';
+    if (it.step === 'headlines') return `<div class="fb">${fbHead()}<img class="wide" src="${firstImg}" alt="">${fbLink(it.text, true)}${whole}${ask}</div>`;
+    if (it.step === 'images') {
+      const main = it.rewrite && showBefore ? it.beforeSrc : it.src;
+      const thumb = it.rewrite ? `<button class="before" data-act="swap" aria-label="Show the other version"><img src="${showBefore ? it.src : it.beforeSrc}" alt=""><span>${showBefore ? 'New' : 'Before'}</span></button>` : '';
+      return `<div class="fb">${fbHead()}<div class="pic"><img src="${main}" alt="Ad image">${thumb}</div>${fbLink(firstHl)}${whole}${ask}</div>`;
+    }
+    const oldSet = it.rewrite ? new Set(R1.find(x => x.id === it.base).lines.map(l => l.trim())) : null;
+    const lines = it.lines.map((l, n) => {
+      const isNew = oldSet && !oldSet.has(l.trim());
+      const ns = notesAt(r, n);
+      return `<div role="button" tabindex="0" class="ln ${n === 0 ? 'first' : ''} ${isNew ? 'new' : ''} ${asking && asking.line === n ? 'on' : ''} ${ns ? 'noted' : ''}" data-line="${n}"><span class="no">${n + 1}</span><span class="tx">${esc(l)}</span></div>
+        ${ns}${asking && asking.line === n ? askBox('adtext', 'What\'s wrong with this line?') : ''}`;
+    }).join('');
+    return `<div class="fb">${fbHead()}<div class="fb-body">${lines}</div>${whole}${ask}<img src="${firstImg}" alt="">${fbLink(firstHl)}
+      <div class="fb-foot"><span>👍 Like</span><span>💬 Comment</span><span>↗ Share</span></div></div>`;
+  }
+  function pageCard(it, r) {
+    const secs = it.sections.map((sec, n) => {
+      const ns = notesAt(r, n);
+      const ps = sec.lines.map(l => /^WATCH|^CLICK|^SEE /i.test(l) ? `<span class="cta">${esc(l)}</span>` : `<p>${esc(l)}</p>`).join('');
+      return `<div role="button" tabindex="0" class="sec ${n === 0 ? 'hero' : ''} ${sec.name === 'Fine print' ? 'fine' : ''} ${asking && asking.line === n ? 'on' : ''} ${ns ? 'noted' : ''}" data-line="${n}"><span class="lab">${esc(sec.name)}</span>${ps}</div>
+        ${ns}${asking && asking.line === n ? askBox('lander', 'What should change in this section?') : ''}`;
+    }).join('');
+    const whole = notesAt(r, null);
+    const ask = asking && asking.line == null ? askBox('lander', 'What should Studio change on this page?') : '';
+    return `<div class="page"><div class="pbar">🔒 ${esc(C.domain.toLowerCase())}</div>${secs}${whole}${ask}</div>`;
+  }
+
+  function decide(v) {
+    if (busy) return;
+    const q = queue(); const it = q[S.i]; if (!it) return;
+    const r = rec(it.id);
+    if (v === 'fix' && !r.notes.length) { asking = { line: null, quote: '', tags: new Set(), thenFix: true }; return renderReview(false); }
+    r.v = v; asking = null; showBefore = false; save();
+    busy = true;
+    const deck = document.getElementById('deck'); if (deck) deck.classList.add('out-' + v);
+    setTimeout(() => {
+      busy = false; const prev = q[S.i]; S.i++; save();
+      const next = queue()[S.i];
+      if (S.round === 1 && next && next.step !== prev.step) flash(next.step);
+      renderReview(true);
+      const st = document.getElementById('stage'); if (st) st.scrollTop = 0;
+    }, 200);
+  }
+  function saveNote() {
+    const ta = document.getElementById('ask'); const text = ta ? ta.value.trim() : '';
+    const was = asking; asking = null;
+    if (!text && !was.tags.size) return renderReview(false);
+    rec(queue()[S.i].id).notes.push({ line: was.line, quote: was.quote || '', tags: [...was.tags], text }); save();
+    if (was.thenFix) return decide('fix');
+    renderReview(false);
+  }
+  function flash(key) {
+    const s = stepOf(key); const f = document.createElement('div'); f.className = 'flash';
+    f.innerHTML = `<div><div class="eyebrow">Up next · ${s.items.length} to go</div><div class="display">${s.label.toUpperCase()}</div></div>`;
+    document.body.appendChild(f); setTimeout(() => f.remove(), 950);
+  }
+
+  // ---------- Round done ----------
+  function finishRound() { G.view = 'done'; save(); renderDone(); }
+  function tagCounts() {
+    const c = {};
+    [S.d1, S.d2].forEach(dd => Object.values(dd).forEach(r => r.notes.forEach(n => n.tags.forEach(t => { c[t] = (c[t] || 0) + 1; }))));
+    return Object.entries(c).sort((a, b) => b[1] - a[1]);
+  }
+  function renderDone() {
+    const items = queue(); const dd = D();
+    const n = v => items.filter(it => dd[it.id] && dd[it.id].v === v).length;
+    const sent = S.round === 1 ? S.sent1 : S.sent2;
+    const skills = tagCounts().map(([t, k]) => {
+      const on = !S.skip[t];
+      return `<div class="skill"><div><small>You flagged "${esc(t)}" ${k} time${k > 1 ? 's' : ''}</small><b>${esc(RULES[t] || t)}</b></div>
+        <div class="yn"><button class="y" data-skill="${esc(t)}" data-val="1" aria-pressed="${on}">Add</button><button class="n" data-skill="${esc(t)}" data-val="0" aria-pressed="${!on}">Skip</button></div></div>`;
+    }).join('');
+    const rw = rewrites();
+    const waiting = R1.filter(it => S.d1[it.id] && S.d1[it.id].v === 'fix' && !rw.some(r => r.base === it.id));
+    const nextUp = ordered().find(c => c.id !== C.id && status(c).rank < 3);
+    let after;
+    if (!sent) after = '<button class="btn red" data-act="send">Send to Studio</button>';
+    else if (S.round === 1 && rw.length) after = '<div class="sent">Sent to Studio ✓</div><button class="btn primary" data-act="rewrite">▶ Review Studio\'s rewrite</button>';
+    else after = `<div class="sent">Sent to Studio ✓</div>${nextUp ? `<button class="btn primary" data-open="${nextUp.id}">▶ Next: ${esc(nextUp.offer)} ${esc(nextUp.name)}</button>` : ''}`;
+    app.innerHTML = `<div class="wrapup gutter">
+      <div><div class="eyebrow">${esc(C.offer)} · ${esc(C.name)} · ${esc(C.date)}</div><h1 class="display">ROUND ${S.round} DONE</h1></div>
+      <div class="tiles">
+        <div class="tile keep"><span class="display">${n('keep')}</span><small>Kept</small></div>
+        <div class="tile fix"><span class="display">${n('fix')}</span><small>To fix</small></div>
+        <div class="tile kill"><span class="display">${n('kill')}</span><small>Killed</small></div>
+      </div>
+      ${skills ? `<div class="skills"><h3>SKILL UPDATES FOR FERNANDO</h3><p>Your repeat notes, written as rules for Studio's skills.</p>${skills}</div>` : ''}
+      ${after}
+      ${sent && S.round === 1 && waiting.length ? `<p class="waiting">${waiting.length} sent-back ${waiting.length === 1 ? 'piece has' : 'pieces have'} no new version in this demo yet (${esc(waiting.map(w => stepOf(w.step).label.toLowerCase()).filter((x, i, a) => a.indexOf(x) === i).join(', '))}).</p>` : ''}
+      <div class="links"><button data-act="back">Change something</button><button data-act="home">Home</button><button data-act="reset">Start over</button></div>
+    </div>`;
+  }
+  function send() {
+    const items = queue(); const dd = D();
+    const payload = {
+      campaign: C.id, offer: C.offer, name: C.name, round: S.round,
+      items: items.map(it => ({ id: it.base || it.id, kind: it.step, version: it.rewrite ? 'rewrite' : 'first', decision: (dd[it.id] || {}).v || 'skipped',
+        notes: ((dd[it.id] || {}).notes || []).map(x => ({ [it.step === 'lander' ? 'section' : 'line']: x.line == null ? null : (it.step === 'lander' ? it.sections[x.line].name : x.line + 1), words: x.quote || null, tags: x.tags, note: x.text || null })) })),
+      skillUpdates: tagCounts().filter(([t]) => !S.skip[t]).map(([t, k]) => ({ tag: t, times: k, rule: RULES[t] || t }))
+    };
+    try { navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).catch(() => {}); } catch (e) {}
+    if (S.round === 1) S.sent1 = true; else S.sent2 = true;
+    save(); renderDone();
+  }
+
+  // ---------- Routing and input ----------
+  function render() { if (G.view !== 'home' && !C) G.view = 'home'; G.view === 'home' ? renderHome() : G.view === 'review' ? renderReview(true) : renderDone(); window.scrollTo(0, 0); }
+  function go(view) { G.view = view; asking = null; showBefore = false; save(); render(); }
+  function firstOpen() { const q = queue(); const i = q.findIndex(it => !(D()[it.id] && D()[it.id].v)); return i >= 0 ? i : 0; }
+  function startRound(round) { S.round = round; S.i = firstOpen(); go('review'); }
+
+  app.addEventListener('click', e => {
+    const t = e.target.closest('button, [data-line]'); if (!t) return;
+    if (t.dataset.open) return open(t.dataset.open);
+    if (t.dataset.tag) { const v = t.dataset.tag; asking.tags.has(v) ? asking.tags.delete(v) : asking.tags.add(v); const ta = document.getElementById('ask'); const keep = ta ? ta.value : ''; renderReview(false); const nt = document.getElementById('ask'); if (nt) nt.value = keep; return; }
+    if (t.dataset.skill) { S.skip[t.dataset.skill] = t.dataset.val === '0'; save(); return renderDone(); }
+    if (t.dataset.line != null) {
+      if (Date.now() - justSelected < 500) return;
+      const s = window.getSelection(); if (s && String(s).trim()) return;
+      asking = { line: +t.dataset.line, quote: '', tags: new Set(), thenFix: false }; return renderReview(false);
+    }
+    if (t.dataset.del != null) { rec(queue()[S.i].id).notes.splice(+t.dataset.del, 1); save(); return renderReview(false); }
+    const a = t.dataset.act;
+    if (a === 'keep' || a === 'kill' || a === 'fix') return decide(a);
+    if (a === 'back') { if (S.i > 0) { S.i = Math.min(S.i, queue().length) - 1; if (S.round === 1) S.sent1 = false; else S.sent2 = false; go('review'); } return; }
+    if (a === 'save') return saveNote();
+    if (a === 'cancel') { asking = null; return renderReview(false); }
+    if (a === 'swap') { showBefore = !showBefore; return renderReview(false); }
+    if (a === 'only-new' || a === 'everything') { S.everything = a === 'everything'; S.i = firstOpen(); save(); return renderReview(true); }
+    if (a === 'home') return go('home');
+    if (a === 'rewrite') return startRound(2);
+    if (a === 'send') return send();
+    if (a === 'reset') { G.by[C.id] = freshC(); use(C.id); save(); return go('home'); }
+  });
+  // Highlight exact words inside a line or section.
+  app.addEventListener('mouseup', () => {
+    if (G.view !== 'review' || asking) return;
+    const s = window.getSelection(); const text = s && String(s).trim(); if (!text) return;
+    const node = s.anchorNode && (s.anchorNode.nodeType === 1 ? s.anchorNode : s.anchorNode.parentElement);
+    const host = node && node.closest('[data-line]'); if (!host) return;
+    s.removeAllRanges(); justSelected = Date.now();
+    asking = { line: +host.dataset.line, quote: text, tags: new Set(), thenFix: false }; renderReview(false);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'TEXTAREA') {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveNote(); }
+      if (e.key === 'Escape') { asking = null; renderReview(false); }
+      return;
+    }
+    if (G.view !== 'review') return;
+    const map = { ArrowRight: 'keep', ArrowLeft: 'kill', ArrowDown: 'fix' };
+    if (map[e.key]) { e.preventDefault(); return decide(map[e.key]); }
+    if (e.key === 'ArrowUp' && S.i > 0) { e.preventDefault(); S.i--; asking = null; save(); renderReview(true); }
+  });
+
+  // Swipe on phones for headlines and images (ad text and landers need to scroll).
+  function bindSwipe() {
+    const deck = document.getElementById('deck'); const it = queue()[S.i];
+    if (!deck || !it || it.step === 'adtext' || it.step === 'lander') return;
+    let x0 = null, y0 = 0, dx = 0, dy = 0;
+    deck.addEventListener('pointerdown', e => { if (e.pointerType === 'mouse' || asking || e.target.closest('button')) return; x0 = e.clientX; y0 = e.clientY; deck.setPointerCapture(e.pointerId); });
+    deck.addEventListener('pointermove', e => { if (x0 == null) return; dx = e.clientX - x0; dy = e.clientY - y0; deck.style.transform = `translate(${dx}px, ${Math.max(0, dy)}px) rotate(${dx / 22}deg)`; });
+    const end = () => { if (x0 == null) return; x0 = null; deck.style.transform = ''; if (dx > 90) decide('keep'); else if (dx < -90) decide('kill'); else if (dy > 90) decide('fix'); dx = dy = 0; };
+    deck.addEventListener('pointerup', end); deck.addEventListener('pointercancel', end);
+  }
+
+  render();
+})();
+</script>
